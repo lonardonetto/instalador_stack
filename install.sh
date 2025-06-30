@@ -189,13 +189,23 @@ EOF
 restart_portainer() {
     echo -e "${YELLOW}Reiniciando Portainer para corrigir timeout...${NC}"
     
+    # Tentar ler o domínio do arquivo .env
+    if [ -f ".env" ]; then
+        DOMINIO_PORTAINER=$(grep "DOMINIO_PORTAINER=" .env | cut -d'=' -f2)
+    fi
+    
+    # Se não conseguiu ler do .env, usar localhost como fallback
+    if [ -z "$DOMINIO_PORTAINER" ]; then
+        DOMINIO_PORTAINER="localhost:9000"
+    fi
+    
     # Reinicia o serviço sem perder dados
     docker service update --force portainer_portainer > /dev/null 2>&1
     
     echo -e "${GREEN}[OK]${NC} Portainer reiniciado com sucesso!"
     echo ""
     echo -e "${CYAN}INFORMAÇÕES:${NC}"
-    echo "- URL de Acesso: https://${DOMINIO_PORTAINER:-localhost:9000}"
+    echo "- URL de Acesso: https://$DOMINIO_PORTAINER"
     echo "- Suas credenciais anteriores continuam válidas"
     echo "- Aguarde 30-60 segundos e tente fazer login novamente"
     echo ""
@@ -205,6 +215,24 @@ restart_portainer() {
 # Função para resetar senha do Portainer (recria conta de admin)
 reset_portainer_password() {
     echo -e "${YELLOW}Resetando conta de administrador do Portainer...${NC}"
+    
+    # Tentar ler o domínio do arquivo .env
+    if [ -f ".env" ]; then
+        DOMINIO_PORTAINER=$(grep "DOMINIO_PORTAINER=" .env | cut -d'=' -f2)
+    fi
+    
+    # Se não conseguiu ler do .env, perguntar ao usuário
+    if [ -z "$DOMINIO_PORTAINER" ]; then
+        echo ""
+        echo -e "${CYAN}Não foi possível detectar automaticamente o domínio do Portainer.${NC}"
+        echo -n "Por favor, digite o domínio do Portainer (ex: portainer.seusite.com.br): "
+        read DOMINIO_PORTAINER
+        
+        if [ -z "$DOMINIO_PORTAINER" ]; then
+            echo -e "${RED}Erro: Domínio não informado. Cancelando operação.${NC}"
+            return 1
+        fi
+    fi
     
     # Gerar nova senha automática
     NEW_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-12)
@@ -229,7 +257,7 @@ reset_portainer_password() {
     # Salvar credenciais em arquivo
     cat > credenciais_portainer_nova.txt << EOF
 === NOVA CONTA DE ADMINISTRADOR - PORTAINER ===
-URL: https://${DOMINIO_PORTAINER:-localhost:9000}
+URL: https://$DOMINIO_PORTAINER
 Usuário: $ADMIN_USER
 Nova Senha: $NEW_PASSWORD
 Data/Hora: $(date)
@@ -242,7 +270,7 @@ EOF
     echo "################################################################"
     echo "#               NOVA SENHA DO PORTAINER                       #"
     echo "################################################################"
-    echo "URL de Acesso:  https://${DOMINIO_PORTAINER:-localhost:9000}"
+    echo "URL de Acesso:  https://$DOMINIO_PORTAINER"
     echo "Usuário:        $ADMIN_USER"
     echo "Nova Senha:     $NEW_PASSWORD"
     echo "################################################################"
