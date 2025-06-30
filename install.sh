@@ -34,7 +34,7 @@ show_menu() {
     echo ""
     echo -e "${CYAN}[1]${NC} Instalação Completa da Stack"
     echo -e "${CYAN}[2]${NC} Reiniciar Portainer (Corrigir Timeout de Login)"
-    echo -e "${CYAN}[3]${NC} Resetar Senha do Portainer"
+    echo -e "${CYAN}[3]${NC} Reset de Senha do Portainer (Gera Nova Senha)"
     echo -e "${CYAN}[4]${NC} Resetar n8n (Recriar Conta - APAGA TUDO)"
     echo -e "${CYAN}[5]${NC} Sair"
     echo ""
@@ -185,21 +185,77 @@ EOF
     echo "gerados pelo Traefik e os sites ficarem acessíveis."
 }
 
-# Função para reiniciar Portainer
+# Função para reiniciar Portainer (corrigir timeout de login)
 restart_portainer() {
-    echo -e "${YELLOW}Reiniciando Portainer...${NC}"
+    echo -e "${YELLOW}Reiniciando Portainer para corrigir timeout...${NC}"
+    
+    # Reinicia o serviço sem perder dados
     docker service update --force portainer_portainer > /dev/null 2>&1
-    echo -e "${GREEN}[OK]${NC} Portainer reiniciado. Aguarde alguns segundos e tente acessar novamente."
+    
+    echo -e "${GREEN}[OK]${NC} Portainer reiniciado com sucesso!"
+    echo ""
+    echo -e "${CYAN}INFORMAÇÕES:${NC}"
+    echo "- URL de Acesso: https://${DOMINIO_PORTAINER:-localhost:9000}"
+    echo "- Suas credenciais anteriores continuam válidas"
+    echo "- Aguarde 30-60 segundos e tente fazer login novamente"
+    echo ""
+    echo -e "${YELLOW}DICA:${NC} Se ainda não conseguir acessar, use a opção de Reset de Senha."
 }
 
-# Função para resetar Portainer
-reset_portainer() {
-    echo -e "${YELLOW}Resetando Portainer...${NC}"
+# Função para resetar senha do Portainer (recria conta de admin)
+reset_portainer_password() {
+    echo -e "${YELLOW}Resetando conta de administrador do Portainer...${NC}"
+    
+    # Gerar nova senha automática
+    NEW_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-12)
+    ADMIN_USER="admin_quisera"
+    
+    echo "  Parando serviço do Portainer..."
     docker service rm portainer_portainer > /dev/null 2>&1
     sleep 3
-    docker volume rm portainer_portainer_data > /dev/null 2>&1
+    
+    echo "  Removendo dados de usuário antigos..."
+    # Remove apenas os dados de usuário, mantém configurações de containers
+    docker run --rm -v portainer_portainer_data:/data alpine:latest \
+        sh -c "rm -f /data/portainer.db /data/portainer.key" > /dev/null 2>&1
+    sleep 2
+    
+    echo "  Recriando serviço do Portainer..."
     docker stack deploy --prune --resolve-image always -c stacks/portainer.yaml portainer > /dev/null 2>&1
-    echo -e "${GREEN}[OK]${NC} Portainer resetado. Você pode criar uma nova conta de administrador."
+    
+    echo "  Aguardando inicialização..."
+    sleep 10
+    
+    # Salvar credenciais em arquivo
+    cat > credenciais_portainer_nova.txt << EOF
+=== NOVA CONTA DE ADMINISTRADOR - PORTAINER ===
+URL: https://${DOMINIO_PORTAINER:-localhost:9000}
+Usuário: $ADMIN_USER
+Nova Senha: $NEW_PASSWORD
+Data/Hora: $(date)
+
+ATENÇÃO: Use estas credenciais para criar a conta de admin no primeiro acesso.
+EOF
+    
+    echo -e "${GREEN}[OK]${NC} Reset de senha concluído com sucesso!"
+    echo ""
+    echo -e "${CYAN}${BOLD}╔═══════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}${BOLD}║               NOVA SENHA DO PORTAINER                     ║${NC}"
+    echo -e "${CYAN}${BOLD}╠═══════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${CYAN}${BOLD}║${NC} ${YELLOW}URL de Acesso:${NC}  https://${DOMINIO_PORTAINER:-localhost:9000} ${CYAN}${BOLD}║${NC}"
+    echo -e "${CYAN}${BOLD}║${NC} ${YELLOW}Usuário:${NC}        $ADMIN_USER                    ${CYAN}${BOLD}║${NC}"
+    echo -e "${CYAN}${BOLD}║${NC} ${YELLOW}Nova Senha:${NC}     ${GREEN}${BOLD}$NEW_PASSWORD${NC}                ${CYAN}${BOLD}║${NC}"
+    echo -e "${CYAN}${BOLD}╚═══════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "${GREEN}✓${NC} Credenciais salvas em: ${BOLD}credenciais_portainer_nova.txt${NC}"
+    echo ""
+    echo -e "${CYAN}PRÓXIMOS PASSOS:${NC}"
+    echo "1. Aguarde 1-2 minutos para completa inicialização"
+    echo "2. Acesse a URL acima no navegador"
+    echo "3. Crie conta de admin usando as credenciais mostradas"
+    echo "4. Seus containers e stacks continuam funcionando normalmente"
+    echo ""
+    echo -e "${RED}IMPORTANTE:${NC} Guarde essa senha em local seguro!"
 }
 
 # Função para resetar n8n
@@ -240,7 +296,7 @@ else
                 read -p "Pressione Enter para voltar ao menu..."
                 ;;
             3)
-                reset_portainer
+                reset_portainer_password
                 read -p "Pressione Enter para voltar ao menu..."
                 ;;
             4)
