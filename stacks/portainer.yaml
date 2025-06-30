@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  portainer_ce:
+    image: portainer/portainer-ce:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    networks:
+      - network_public
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.portainer.rule=Host(`${DOMINIO_PORTAINER}`)"
+        - "traefik.http.routers.portainer.entrypoints=websecure"
+        - "traefik.http.routers.portainer.priority=1"
+        - "traefik.http.routers.portainer.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.portainer.service=portainer"
+        - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+networks:
+  network_public:
+    external: true
+    attachable: true
+    name: network_public
+
+volumes:
+  portainer_data:
+    external: true
+    name: portainer_data
+
+
