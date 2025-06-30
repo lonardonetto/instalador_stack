@@ -4,7 +4,7 @@
 # =================================================================
 #
 # Autor: Agência Quisera
-# Versao: 1.0 - Edição Robusta
+# Versao: 1.1 - Autossuficiente
 #
 # Este script realiza a instalação completa do n8n em modo swarm,
 # com Traefik, Portainer, Postgres e Redis.
@@ -90,7 +90,6 @@ fi
 # --- Configuração do Docker Swarm ---
 echo "Configurando Docker Swarm..." | tee -a "$LOG_FILE"
 if ! docker info | grep -q "Swarm: active"; then
-    # CORREÇÃO INTELIGENTE: Detecta o IP principal da máquina dinamicamente.
     endereco_ip=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
     if [[ -z $endereco_ip ]]; then
         echo "ERRO: Não foi possível obter o endereço IP principal da máquina." | tee -a "$LOG_FILE"
@@ -102,7 +101,6 @@ else
     echo "Docker Swarm já está ativo. Pulando inicialização." | tee -a "$LOG_FILE"
 fi
 
-# Cria a rede overlay se não existir
 if ! docker network ls | grep -q "network_public"; then
     docker network create --driver=overlay network_public >> "$LOG_FILE" 2>&1
     echo "Rede 'network_public' do Swarm criada." | tee -a "$LOG_FILE"
@@ -111,15 +109,19 @@ else
 fi
 
 # --- Implantação dos Stacks ---
-# MELHORIA ARQUITETURAL: Presume que os arquivos .yaml estão em uma pasta local 'stacks'
-# Isso torna o instalador autossuficiente e não dependente de uma URL externa.
 STACKS_DIR="stacks"
+REPO_BASE_URL="https://raw.githubusercontent.com/lonardonetto/instalador_stack/main/stacks"
 
-if [ ! -d "$STACKS_DIR" ]; then
-    echo "ERRO: O diretório '$STACKS_DIR' com os arquivos .yaml não foi encontrado." | tee -a "$LOG_FILE"
-    echo "Por favor, crie o diretório e coloque os arquivos traefik.yaml, portainer.yaml, postgres.yaml e redis.yaml dentro dele."
-    exit 1
-fi
+echo "Baixando arquivos de configuração dos stacks do repositório..." | tee -a "$LOG_FILE"
+mkdir -p "$STACKS_DIR"
+
+# Baixa cada arquivo .yaml do seu repositório
+curl -sSL "$REPO_BASE_URL/traefik.yaml" -o "$STACKS_DIR/traefik.yaml"
+curl -sSL "$REPO_BASE_URL/portainer.yaml" -o "$STACKS_DIR/portainer.yaml"
+curl -sSL "$REPO_BASE_URL/postgres.yaml" -o "$STACKS_DIR/postgres.yaml"
+curl -sSL "$REPO_BASE_URL/redis.yaml" -o "$STACKS_DIR/redis.yaml"
+curl -sSL "$REPO_BASE_URL/n8n.yaml" -o "$STACKS_DIR/n8n.yaml"
+echo "Download dos arquivos .yaml concluído." | tee -a "$LOG_FILE"
 
 echo "Implantando stack do Traefik..." | tee -a "$LOG_FILE"
 env SSL_EMAIL="$SSL_EMAIL" docker stack deploy --prune --resolve-image always -c "$STACKS_DIR/traefik.yaml" traefik >> "$LOG_FILE" 2>&1
@@ -139,7 +141,6 @@ echo "Redis implantado." | tee -a "$LOG_FILE"
 
 # --- Configuração do Banco de Dados para o n8n ---
 echo "Aguardando o serviço do Postgres ficar pronto..." | tee -a "$LOG_FILE"
-# CORREÇÃO INTELIGENTE: Espera ativamente pelo Postgres em vez de usar um 'sleep' fixo.
 retries=30
 until docker exec "$(docker ps --filter name=postgres_postgres -q)" pg_isready -U postgres > /dev/null 2>&1 || [ $retries -eq 0 ]; do
     echo "Aguardando Postgres... ($retries tentativas restantes)" | tee -a "$LOG_FILE"
