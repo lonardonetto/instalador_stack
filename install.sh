@@ -4,7 +4,7 @@
 # =================================================================
 #
 # Autor: Agência Quisera
-# Versao: 1.5 - Painel Profissional
+# Versao: 1.6 - Painel Profissional Otimizado
 #
 # Este script realiza a instalação completa do n8n e Evolution API
 # em modo swarm, com todas as dependências e exibe um resumo final.
@@ -157,32 +157,11 @@ Pode levar alguns minutos para os sites ficarem online.
 ---------------------------------------------------------------------
 --> EVOLUTION API (API para WhatsApp)
 ---------------------------------------------------------------------
-- URL da API:    https://${DOMINIO_EVOLUTION}
-- API KEY:       ${EVOLUTION_API_KEY}
-  (Esta chave é o seu token de acesso. Guarde-a!)
-
-=====================================================================
-            PRIMEIROS PASSOS: CONECTANDO SEU WHATSAPP
-=====================================================================
-
-1. CRIE UMA INSTÂNCIA:
-   Execute este comando no seu terminal para criar uma instância
-   chamada 'atendimento_quisera' (você pode mudar o nome):
-
-   curl --request POST \\
-     --url https://${DOMINIO_EVOLUTION}/instance/create \\
-     --header 'apikey: ${EVOLUTION_API_KEY}' \\
-     --header 'Content-Type: application/json' \\
-     --data '{
-       "instanceName": "atendimento_quisera",
-       "qrcode": true
-     }'
-
-2. ESCANEIE O QR CODE:
-   Após executar o comando acima, acesse esta URL no seu navegador
-   para escanear o QR Code com o aplicativo do WhatsApp:
-
-   https://${DOMINIO_EVOLUTION}/instance/connect/atendimento_quisera
+- URL do Manager: https://${DOMINIO_EVOLUTION}
+- Sua API KEY:    ${EVOLUTION_API_KEY}
+- Instruções:     Acesse a URL do Manager para ver a documentação
+                  e interagir com a API. Use a API KEY acima para
+                  criar sua primeira instância e conectar um celular.
 
 #####################################################################
 
