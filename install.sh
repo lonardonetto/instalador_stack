@@ -239,23 +239,23 @@ EOF
     
     echo -e "${GREEN}[OK]${NC} Reset de senha concluído com sucesso!"
     echo ""
-    echo -e "${CYAN}${BOLD}╔═══════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}${BOLD}║               NOVA SENHA DO PORTAINER                     ║${NC}"
-    echo -e "${CYAN}${BOLD}╠═══════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}${BOLD}║${NC} ${YELLOW}URL de Acesso:${NC}  https://${DOMINIO_PORTAINER:-localhost:9000} ${CYAN}${BOLD}║${NC}"
-    echo -e "${CYAN}${BOLD}║${NC} ${YELLOW}Usuário:${NC}        $ADMIN_USER                    ${CYAN}${BOLD}║${NC}"
-    echo -e "${CYAN}${BOLD}║${NC} ${YELLOW}Nova Senha:${NC}     ${GREEN}${BOLD}$NEW_PASSWORD${NC}                ${CYAN}${BOLD}║${NC}"
-    echo -e "${CYAN}${BOLD}╚═══════════════════════════════════════════════════════════╝${NC}"
+    echo "################################################################"
+    echo "#               NOVA SENHA DO PORTAINER                       #"
+    echo "################################################################"
+    echo "URL de Acesso:  https://${DOMINIO_PORTAINER:-localhost:9000}"
+    echo "Usuário:        $ADMIN_USER"
+    echo "Nova Senha:     $NEW_PASSWORD"
+    echo "################################################################"
     echo ""
-    echo -e "${GREEN}✓${NC} Credenciais salvas em: ${BOLD}credenciais_portainer_nova.txt${NC}"
+    echo "Credenciais salvas em: credenciais_portainer_nova.txt"
     echo ""
-    echo -e "${CYAN}PRÓXIMOS PASSOS:${NC}"
+    echo "PRÓXIMOS PASSOS:"
     echo "1. Aguarde 1-2 minutos para completa inicialização"
     echo "2. Acesse a URL acima no navegador"
     echo "3. Crie conta de admin usando as credenciais mostradas"
     echo "4. Seus containers e stacks continuam funcionando normalmente"
     echo ""
-    echo -e "${RED}IMPORTANTE:${NC} Guarde essa senha em local seguro!"
+    echo "IMPORTANTE: Guarde essa senha em local seguro!"
 }
 
 # Função para resetar n8n
@@ -268,16 +268,27 @@ reset_n8n() {
     echo -e "${GREEN}[OK]${NC} n8n resetado. Você pode criar uma nova conta de proprietário."
 }
 
+# Função para baixar e executar script localmente (resolve problema do pipe)
+download_and_run() {
+    echo -e "${YELLOW}Baixando script para execução local...${NC}"
+    curl -s https://raw.githubusercontent.com/lonardonetto/instalador_stack/main/install.sh -o temp_installer.sh
+    chmod +x temp_installer.sh
+    ./temp_installer.sh
+    rm -f temp_installer.sh
+    exit 0
+}
+
 # Lógica principal
 if [ "$#" -eq 5 ]; then
     # Se foram passados 5 parâmetros, executa instalação direta
     install_complete_stack "$@"
-else
-    # Caso contrário, mostra o menu
+elif [ -t 0 ]; then
+    # Se está sendo executado em terminal interativo, mostra o menu
     while true; do
         show_banner
         show_menu
-        read -p "Digite o número da opção desejada: " choice
+        echo -n "Digite o número da opção desejada: "
+        read choice
         
         case $choice in
             1)
@@ -289,19 +300,23 @@ else
                 echo "\"webhook.seusite.com.br\" \\"
                 echo "\"evolution.seusite.com.br\""
                 echo ""
-                read -p "Pressione Enter para voltar ao menu..."
+                echo -n "Pressione Enter para voltar ao menu..."
+                read
                 ;;
             2)
                 restart_portainer
-                read -p "Pressione Enter para voltar ao menu..."
+                echo -n "Pressione Enter para voltar ao menu..."
+                read
                 ;;
             3)
                 reset_portainer_password
-                read -p "Pressione Enter para voltar ao menu..."
+                echo -n "Pressione Enter para voltar ao menu..."
+                read
                 ;;
             4)
                 reset_n8n
-                read -p "Pressione Enter para voltar ao menu..."
+                echo -n "Pressione Enter para voltar ao menu..."
+                read
                 ;;
             5)
                 echo -e "${GREEN}Obrigado por usar o Gerenciador de Stack da Agência Quisera!${NC}"
@@ -313,4 +328,7 @@ else
                 ;;
         esac
     done
+else
+    # Se não está em terminal interativo (pipe), baixa e executa localmente
+    download_and_run
 fi
