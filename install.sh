@@ -4,7 +4,7 @@
 # =================================================================
 #
 # Autor: Agência Quisera
-# Versao: 1.4 - Resumo Final Otimizado
+# Versao: 1.5 - Painel Profissional
 #
 # Este script realiza a instalação completa do n8n e Evolution API
 # em modo swarm, com todas as dependências e exibe um resumo final.
@@ -132,27 +132,58 @@ env DOMINIO_N8N="$DOMINIO_N8N" WEBHOOK_N8N="$WEBHOOK_N8N" POSTGRES_PASSWORD="$PO
 # --- Finalização ---
 cat << EOF
 
-=================================================================
-==            INSTALAÇÃO CONCLUÍDA COM SUCESSO!            ==
-=================================================================
+#####################################################################
+#                                                                   #
+#         INSTALADOR 1.0 AGENCIA QUISERA - ACESSOS FINAIS           #
+#                                                                   #
+#####################################################################
 
-Seu ambiente de automação da Agência Quisera está pronto!
-Salve estas informações em um local seguro.
+A instalação foi concluída. Guarde estas informações com segurança.
+Pode levar alguns minutos para os sites ficarem online.
 
---- ACESSOS E CREDENCIAIS ---
+---------------------------------------------------------------------
+--> PORTAINER (Gerenciador de Containers)
+---------------------------------------------------------------------
+- URL de Acesso: https://${DOMINIO_PORTAINER}
+- Instruções: No primeiro acesso, crie seu usuário administrador.
+              (Sugestão de usuário: quisera_admin)
 
-*** 1. PORTAINER (Gerenciador de Containers) ***
-    * URL de Acesso:  https://${DOMINIO_PORTAINER}
-    * Como Acessar:  No primeiro acesso, a tela pedirá para você
-                    criar um usuário administrador.
-                    Sugestão de usuário: quisera_admin
-                    Crie uma senha forte e guarde-a.
+---------------------------------------------------------------------
+--> N8N (Plataforma de Automação)
+---------------------------------------------------------------------
+- URL de Acesso: https://${DOMINIO_N8N}
+- Instruções: No primeiro acesso, crie a conta do proprietário.
 
-*** 2. n8n (Plataforma de Automação) ***
-    * URL de Acesso:  https://${DOMINIO_N8N}
-    * Como Acessar:  No primeiro acesso, você também precisará
-                    criar a conta do administrador do n8n.
+---------------------------------------------------------------------
+--> EVOLUTION API (API para WhatsApp)
+---------------------------------------------------------------------
+- URL da API:    https://${DOMINIO_EVOLUTION}
+- API KEY:       ${EVOLUTION_API_KEY}
+  (Esta chave é o seu token de acesso. Guarde-a!)
 
-*** 3. EVOLUTION API (API para WhatsApp) ***
-    * URL da API:     https://${DOMINIO_EVOLUTION}
-    * API KEY:        ${EVOLUTION_API_KEY
+=====================================================================
+            PRIMEIROS PASSOS: CONECTANDO SEU WHATSAPP
+=====================================================================
+
+1. CRIE UMA INSTÂNCIA:
+   Execute este comando no seu terminal para criar uma instância
+   chamada 'atendimento_quisera' (você pode mudar o nome):
+
+   curl --request POST \\
+     --url https://${DOMINIO_EVOLUTION}/instance/create \\
+     --header 'apikey: ${EVOLUTION_API_KEY}' \\
+     --header 'Content-Type: application/json' \\
+     --data '{
+       "instanceName": "atendimento_quisera",
+       "qrcode": true
+     }'
+
+2. ESCANEIE O QR CODE:
+   Após executar o comando acima, acesse esta URL no seu navegador
+   para escanear o QR Code com o aplicativo do WhatsApp:
+
+   https://${DOMINIO_EVOLUTION}/instance/connect/atendimento_quisera
+
+#####################################################################
+
+EOF
