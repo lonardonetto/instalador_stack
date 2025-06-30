@@ -4,7 +4,7 @@
 # =================================================================
 #
 # Autor: Agência Quisera
-# Versao: 3.0 - Gerenciador Profissional com UI Colorida
+# Versao: 3.1 - Correção do Menu
 #
 # Este script serve como um instalador e ferramenta de manutenção
 # para a stack de automação, com uma interface visualmente organizada.
@@ -279,7 +279,7 @@ case $choice in
     3)
         reset_portainer_password
         ;;
-    4.0)
+    4)
         reconfigure_n8n
         ;;
     5)
