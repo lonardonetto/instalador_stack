@@ -4,7 +4,7 @@
 # =================================================================
 #
 # Autor: Agência Quisera
-# Versao: 1.6 - Painel Profissional Otimizado
+# Versao: 1.7 - URL do Manager Corrigida
 #
 # Este script realiza a instalação completa do n8n e Evolution API
 # em modo swarm, com todas as dependências e exibe um resumo final.
@@ -157,7 +157,7 @@ Pode levar alguns minutos para os sites ficarem online.
 ---------------------------------------------------------------------
 --> EVOLUTION API (API para WhatsApp)
 ---------------------------------------------------------------------
-- URL do Manager: https://${DOMINIO_EVOLUTION}
+- URL do Manager: https://${DOMINIO_EVOLUTION}/manager
 - Sua API KEY:    ${EVOLUTION_API_KEY}
 - Instruções:     Acesse a URL do Manager para ver a documentação
                   e interagir com a API. Use a API KEY acima para
