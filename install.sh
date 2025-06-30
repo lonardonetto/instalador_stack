@@ -4,7 +4,7 @@
 # =================================================================
 #
 # Autor: Agência Quisera
-# Versao: 1.3 - Final com Acessos Detalhados
+# Versao: 1.4 - Resumo Final Otimizado
 #
 # Este script realiza a instalação completa do n8n e Evolution API
 # em modo swarm, com todas as dependências e exibe um resumo final.
@@ -19,9 +19,6 @@ fi
 # --- Configurações Iniciais ---
 export DEBIAN_FRONTEND=noninteractive
 LOG_FILE="instalador_quisera.log"
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
 
 SSL_EMAIL=$1
 DOMINIO_N8N=$2
@@ -133,53 +130,29 @@ echo "Implantando stack do n8n..." | tee -a "$LOG_FILE"
 env DOMINIO_N8N="$DOMINIO_N8N" WEBHOOK_N8N="$WEBHOOK_N8N" POSTGRES_PASSWORD="$POSTGRES_PASSWORD" N8N_KEY="$N8N_KEY" docker stack deploy -c "$STACKS_DIR/n8n.yaml" n8n >> "$LOG_FILE" 2>&1
 
 # --- Finalização ---
-cat << EOF | tee -a "$LOG_FILE"
+cat << EOF
 
-${GREEN}=================================================================${NC}
-${GREEN}==            INSTALAÇÃO CONCLUÍDA COM SUCESSO!            ==${NC}
-${GREEN}=================================================================${NC}
+=================================================================
+==            INSTALAÇÃO CONCLUÍDA COM SUCESSO!            ==
+=================================================================
 
 Seu ambiente de automação da Agência Quisera está pronto!
 Salve estas informações em um local seguro.
 
-${BLUE}--- Acessos e Credenciais ---${NC}
+--- ACESSOS E CREDENCIAIS ---
 
-1.  ${BLUE}PORTAINER (Gerenciador de Containers)${NC}
-    URL de Acesso:  https://${DOMINIO_PORTAINER}
-    Usuário/Senha:  Você deverá criar seu usuário administrador
-                    (ex: 'quisera_admin') e uma senha no primeiro acesso.
-                    Este é o comportamento padrão e seguro do Portainer.
+*** 1. PORTAINER (Gerenciador de Containers) ***
+    * URL de Acesso:  https://${DOMINIO_PORTAINER}
+    * Como Acessar:  No primeiro acesso, a tela pedirá para você
+                    criar um usuário administrador.
+                    Sugestão de usuário: quisera_admin
+                    Crie uma senha forte e guarde-a.
 
-2.  ${BLUE}n8n (Plataforma de Automação)${NC}
-    URL de Acesso:  https://${DOMINIO_N8N}
-    Configuração:   No primeiro acesso, você precisará criar
-                    uma conta de administrador para o n8n.
+*** 2. n8n (Plataforma de Automação) ***
+    * URL de Acesso:  https://${DOMINIO_N8N}
+    * Como Acessar:  No primeiro acesso, você também precisará
+                    criar a conta do administrador do n8n.
 
-3.  ${BLUE}EVOLUTION API (API para WhatsApp)${NC}
-    URL da API:     https://${DOMINIO_EVOLUTION}
-    API KEY:        ${EVOLUTION_API_KEY}
-    (Guarde esta chave, ela é necessária para todas as requisições)
-
-${BLUE}--- PRIMEIROS PASSOS COM A EVOLUTION API ---${NC}
-
-Para começar a usar o WhatsApp, você precisa criar uma 'instância'.
-Use o comando abaixo, substituindo 'minha-instancia' pelo nome
-que desejar para sua conexão:
-
-curl --request POST \\
-  --url https://${DOMINIO_EVOLUTION}/instance/create \\
-  --header 'apikey: ${EVOLUTION_API_KEY}' \\
-  --header 'Content-Type: application/json' \\
-  --data '{
-    "instanceName": "minha-instancia",
-    "qrcode": true
-  }'
-
-Após executar o comando, acesse a URL abaixo para escanear o QR Code
-com o seu celular e conectar o WhatsApp:
-https://${DOMINIO_EVOLUTION}/instance/connect/minha-instancia
-
--------------------------------------------------------------------
-Lembre-se: Pode levar alguns minutos para os certificados SSL serem
-gerados pelo Traefik e os sites ficarem acessíveis.
-EOF
+*** 3. EVOLUTION API (API para WhatsApp) ***
+    * URL da API:     https://${DOMINIO_EVOLUTION}
+    * API KEY:        ${EVOLUTION_API_KEY
